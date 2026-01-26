@@ -21,67 +21,45 @@ import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 
-const registerSchema = z.object({
-  name: z.string().trim().min(2, "Nome é obrigatório"),
+const loginSchema = z.object({
   email: z.email("Formato de email inválido"),
   password: z.string().trim().min(8, "A senha deve ter no mínimo 8 caracteres"),
 });
 
-const SignUpForm: React.FC = () => {
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
+const LoginForm: React.FC = () => {
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
   });
 
-  function onSubmit(data: z.infer<typeof registerSchema>) {
+  function onSubmit(data: z.infer<typeof loginSchema>) {
     console.log(data);
   }
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Criar conta</CardTitle>
-        <CardDescription>Crie uma conta para continuar</CardDescription>
+        <CardTitle>Login</CardTitle>
+        <CardDescription>Faça login para continuar</CardDescription>
       </CardHeader>
       <CardContent>
         <form
-          id="form-register"
+          id="form-login"
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-4"
         >
           <FieldGroup className="gap-3">
             <Controller
-              name="name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-register-name">Nome</FieldLabel>
-                  <Input
-                    {...field}
-                    id="form-register-name"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Digite seu nome"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
               name="email"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-register-email">Email</FieldLabel>
+                  <FieldLabel htmlFor="form-login-email">Email</FieldLabel>
                   <Input
                     {...field}
-                    id="form-register-email"
+                    id="form-login-email"
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite seu email"
                     autoComplete="off"
@@ -98,13 +76,11 @@ const SignUpForm: React.FC = () => {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-register-password">
-                    Senha
-                  </FieldLabel>
+                  <FieldLabel htmlFor="form-login-password">Senha</FieldLabel>
                   <Input
                     {...field}
                     type="password"
-                    id="form-register-password"
+                    id="form-login-password"
                     aria-invalid={fieldState.invalid}
                     placeholder="Digite sua senha"
                     autoComplete="off"
@@ -120,7 +96,7 @@ const SignUpForm: React.FC = () => {
       </CardContent>
       <CardFooter>
         <Field orientation="horizontal">
-          <Button type="submit" form="form-register" className="w-full">
+          <Button type="submit" form="form-login" className="w-full">
             Submit
           </Button>
         </Field>
@@ -129,4 +105,4 @@ const SignUpForm: React.FC = () => {
   );
 };
 
-export default SignUpForm;
+export default LoginForm;
