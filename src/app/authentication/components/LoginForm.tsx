@@ -16,9 +16,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/authClient";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const loginSchema = z.object({
@@ -27,6 +31,7 @@ const loginSchema = z.object({
 });
 
 const LoginForm: React.FC = () => {
+  const router = useRouter();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -35,9 +40,24 @@ const LoginForm: React.FC = () => {
     },
   });
 
-  function onSubmit(data: z.infer<typeof loginSchema>) {
-    console.log(data);
+  async function onSubmit(data: z.infer<typeof loginSchema>) {
+    await authClient.signIn.email(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Login realizado com sucesso.");
+          router.push("/dashboard");
+        },
+        onError: () => {
+          toast.error("E-mail ou senha inválidos.");
+        },
+      },
+    );
   }
+
   return (
     <Card>
       <CardHeader>
@@ -97,7 +117,11 @@ const LoginForm: React.FC = () => {
       <CardFooter>
         <Field orientation="horizontal">
           <Button type="submit" form="form-login" className="w-full">
-            Submit
+            {form.formState.isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              "Entrar"
+            )}
           </Button>
         </Field>
       </CardFooter>
