@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import SignOutButton from "./components/SignOutButton";
+import SignOutButton from "./_components/SignOutButton";
 
 const DashboardPage = async () => {
   const session = await auth.api.getSession({
