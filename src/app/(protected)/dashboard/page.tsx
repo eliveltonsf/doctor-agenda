@@ -1,4 +1,3 @@
-import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -13,12 +12,7 @@ const DashboardPage = async () => {
     redirect("/authentication");
   }
 
-  const clinics = await db.query.userToClinicTable.findMany({
-    where: (userToClinicTable, { eq }) =>
-      eq(userToClinicTable.userId, session!.user!.id),
-  });
-
-  if (clinics.length === 0) {
+  if (!session?.user?.clinic) {
     redirect("/clinic-form");
   }
 
