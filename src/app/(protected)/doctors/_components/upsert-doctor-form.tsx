@@ -29,6 +29,7 @@ import { Controller, useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import z from "zod";
 import {
+  crmStateOptions,
   initialAvailabilityDaysOptions,
   initialAvailabilityTimesOptions,
   medicalSpecialties,
@@ -49,6 +50,7 @@ const UpsertDoctorForm = () => {
       availableToWeekDay: z.string(),
       availableFromTime: z.string().min(1, "Hora de início é obrigatória"),
       availableToTime: z.string().min(1, "Hora de término é obrigatória"),
+      stateCRM: z.string().trim().min(2, "O estado do CRM é obrigatório"),
     })
     .refine(
       (data) => {
@@ -69,6 +71,7 @@ const UpsertDoctorForm = () => {
       email: "",
       phone: "",
       crm: "",
+      stateCRM: "",
       specialty: "",
       appointmentPrice: 0,
       availableFromWeekDay: "1",
@@ -148,6 +151,68 @@ const UpsertDoctorForm = () => {
               </Field>
             )}
           />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Controller
+              name="crm"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="form-register-crm">CRM</FieldLabel>
+                  <Input
+                    {...field}
+                    id="form-register-crm"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Digite seu CRM"
+                    autoComplete="off"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="stateCRM"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <FieldSet
+                  className="w-full gap-3"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldLegend
+                    variant="label"
+                    className={fieldState.invalid ? "text-red-500" : ""}
+                  >
+                    Estado do CRM
+                  </FieldLegend>
+                  <Field>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        id="form-register-state-crm"
+                        aria-invalid={fieldState.invalid}
+                      >
+                        <SelectValue placeholder="Selecione o estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {crmStateOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldSet>
+              )}
+            />
+          </div>
 
           <Controller
             name="specialty"

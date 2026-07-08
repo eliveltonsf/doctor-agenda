@@ -57,6 +57,18 @@ export const medicalSpecialties = Object.entries(MedicalSpecialty).map(
   }),
 );
 
+export enum CRMState {
+  CE = "CE",
+  RN = "RN",
+  MG = "MG",
+  SP = "SP",
+}
+
+export const crmStateOptions = Object.entries(CRMState).map(([key, value]) => ({
+  value,
+  label: value,
+}));
+
 export const InitialAvailabilityDays = {
   0: "Domingo",
   1: "Segunda",
