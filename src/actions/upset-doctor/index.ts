@@ -7,9 +7,28 @@ import { headers } from "next/headers";
 import { doctorsTable } from "./../../db/schema";
 import { upsetDoctorSchema } from "./schema";
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
 export const upsetDoctor = actionClient
   .schema(upsetDoctorSchema)
   .action(async ({ parsedInput }) => {
+    const availableFromTime = parsedInput.availableFromTime;
+    const availableToTime = parsedInput.availableToTime;
+
+    const availableFromTimeUTC = dayjs()
+      .set("hour", parseInt(availableFromTime.split(":")[0]))
+      .set("minute", parseInt(availableFromTime.split(":")[1]))
+      .set("seconds", parseInt(availableFromTime.split(":")[2]))
+      .utc();
+    const availableToTimeUTC = dayjs()
+      .set("hour", parseInt(availableToTime.split(":")[0]))
+      .set("minute", parseInt(availableToTime.split(":")[1]))
+      .set("seconds", parseInt(availableToTime.split(":")[2]))
+      .utc();
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -25,14 +44,18 @@ export const upsetDoctor = actionClient
     await db
       .insert(doctorsTable)
       .values({
+        ...parsedInput,
         id: parsedInput.id,
         clinicId: session.user.clinic.id,
-        ...parsedInput,
+        availableFromTime: availableFromTimeUTC.format("HH:mm:ss"),
+        availableToTime: availableToTimeUTC.format("HH:mm:ss"),
       })
       .onConflictDoUpdate({
         target: [doctorsTable.id],
         set: {
           ...parsedInput,
+          availableFromTime: availableFromTimeUTC.format("HH:mm:ss"),
+          availableToTime: availableToTimeUTC.format("HH:mm:ss"),
         },
       });
   });
