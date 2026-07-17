@@ -123,6 +123,9 @@ export const doctorsTable = pgTable("doctors", {
     onDelete: "cascade",
   }),
   name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone").notNull(),
+  crm: text("crm").notNull(),
   avatarImageUrl: text("avatar_img_url"),
   // 1 - Mondey, 2 - Tuesday, 3 - Wednesday, 4 - Thursday, 5 - Friday, 6 - Saturday, 0 - Sunday
   availableFromWeekDay: integer("available_from_week_day").notNull(),

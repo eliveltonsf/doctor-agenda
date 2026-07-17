@@ -1,3 +1,4 @@
+import { upsetDoctor } from "@/actions/upset-doctor";
 import { PhoneInput } from "@/components/phone-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +26,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAction } from "next-safe-action/hooks";
 import { Controller, useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
+import { toast } from "sonner";
 import z from "zod";
 import {
   crmStateOptions,
@@ -35,35 +38,37 @@ import {
   medicalSpecialties,
 } from "../_constants";
 
-const UpsertDoctorForm = () => {
-  const formSchema = z
-    .object({
-      name: z.string().trim().min(2, "O nome é obrigatório"),
-      email: z.string().email("Email inválido"),
-      phone: z.string().trim().min(10, "O telefone é obrigatório"),
-      crm: z.string().trim().min(5, "O CRM é obrigatório"),
-      specialty: z.string().trim().min(2, "A especialidade é obrigatória"),
-      appointmentPrice: z
-        .number()
-        .min(1, "O preço do atendimento é obrigatório"),
-      availableFromWeekDay: z.string(),
-      availableToWeekDay: z.string(),
-      availableFromTime: z.string().min(1, "Hora de início é obrigatória"),
-      availableToTime: z.string().min(1, "Hora de término é obrigatória"),
-      stateCRM: z.string().trim().min(2, "O estado do CRM é obrigatório"),
-    })
-    .refine(
-      (data) => {
-        const fromTime = data.availableFromTime;
-        const toTime = data.availableToTime;
-        return fromTime < toTime;
-      },
-      {
-        message: "O horário final deve ser maior que o horário inicial",
-        path: ["availableToTime"],
-      },
-    );
+const formSchema = z
+  .object({
+    name: z.string().trim().min(2, "O nome é obrigatório"),
+    email: z.string().email("Email inválido"),
+    phone: z.string().trim().min(10, "O telefone é obrigatório"),
+    crm: z.string().trim().min(5, "O CRM é obrigatório"),
+    specialty: z.string().trim().min(2, "A especialidade é obrigatória"),
+    appointmentPrice: z.number().min(1, "O preço do atendimento é obrigatório"),
+    availableFromWeekDay: z.string(),
+    availableToWeekDay: z.string(),
+    availableFromTime: z.string().min(1, "Hora de início é obrigatória"),
+    availableToTime: z.string().min(1, "Hora de término é obrigatória"),
+    stateCRM: z.string().trim().min(2, "O estado do CRM é obrigatório"),
+  })
+  .refine(
+    (data) => {
+      const fromTime = data.availableFromTime;
+      const toTime = data.availableToTime;
+      return fromTime < toTime;
+    },
+    {
+      message: "O horário final deve ser maior que o horário inicial",
+      path: ["availableToTime"],
+    },
+  );
 
+interface upsetDoctorActionProps {
+  onSuccess: () => void;
+}
+
+const UpsertDoctorForm = ({ onSuccess }: upsetDoctorActionProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -81,8 +86,24 @@ const UpsertDoctorForm = () => {
     },
   });
 
+  const upsetDoctorAction = useAction(upsetDoctor, {
+    onSuccess: () => {
+      toast.success("Médico adicionado com sucesso!");
+      onSuccess?.();
+    },
+    onError: () => {
+      toast.error("Ocorreu um erro ao adicionar o médico.");
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    upsetDoctorAction.execute({
+      ...values,
+      availableFromWeekDay: parseInt(values.availableFromWeekDay),
+      availableToWeekDay: parseInt(values.availableToWeekDay),
+      appointmentPriceInCents: values.appointmentPrice * 100,
+      crm: `${values.crm}/${values.stateCRM}`,
+    });
   };
 
   return (
@@ -371,49 +392,6 @@ const UpsertDoctorForm = () => {
           />
 
           <Controller
-            name="availableFromWeekDay"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <FieldSet
-                className="w-full gap-3"
-                data-invalid={fieldState.invalid}
-              >
-                <FieldLegend
-                  variant="label"
-                  className={fieldState.invalid ? "text-red-500" : ""}
-                >
-                  Dia inicial de disponibilidade
-                </FieldLegend>
-                <Field>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value?.toString()}
-                  >
-                    <SelectTrigger
-                      id="pg-form-availableFromWeekDay"
-                      aria-invalid={fieldState.invalid}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {initialAvailabilityDaysOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </FieldSet>
-            )}
-          />
-
-          <Controller
             name="availableFromTime"
             control={form.control}
             render={({ field, fieldState }) => (
@@ -500,7 +478,9 @@ const UpsertDoctorForm = () => {
           />
         </FieldGroup>
         <DialogFooter className="mt-4">
-          <Button type="submit">Adicionar</Button>
+          <Button type="submit" disabled={upsetDoctorAction.isPending}>
+            {upsetDoctorAction.isPending ? "Adicionando..." : "Adicionar"}
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>
