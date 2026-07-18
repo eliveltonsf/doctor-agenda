@@ -16,12 +16,16 @@ import { Separator } from "@/components/ui/separator";
 import { doctorsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/currency";
 import { Calendar1Icon, Clock, DollarSignIcon } from "lucide-react";
+import { useState } from "react";
 import { getAvailability } from "../_helpers/availability";
+import UpsertDoctorForm from "./upsert-doctor-form";
 interface DoctorCardProps {
   doctor: typeof doctorsTable.$inferSelect;
 }
 
 function DoctorCard({ doctor }: DoctorCardProps) {
+  const [isUpsertDialogOpen, setIsUpsertDialogOpen] = useState(false);
+
   const doctorInitials = doctor.name
     .split(" ")
     .map((word) => word[0])
@@ -61,10 +65,18 @@ function DoctorCard({ doctor }: DoctorCardProps) {
       </CardContent>
       <Separator />
       <CardFooter>
-        <Dialog>
+        <Dialog open={isUpsertDialogOpen} onOpenChange={setIsUpsertDialogOpen}>
           <DialogTrigger asChild>
             <Button className="w-full">Ver detalhes</Button>
           </DialogTrigger>
+          <UpsertDoctorForm
+            doctor={{
+              ...doctor,
+              availableToTime: availability.to.format("HH:mm:ss"),
+              availableFromTime: availability.from.format("HH:mm:ss"),
+            }}
+            onSuccess={() => setIsUpsertDialogOpen(false)}
+          />
         </Dialog>
       </CardFooter>
     </Card>
