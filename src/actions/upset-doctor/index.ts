@@ -9,6 +9,7 @@ import { upsetDoctorSchema } from "./schema";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { revalidatePath } from "next/cache";
 
 dayjs.extend(utc);
 
@@ -46,7 +47,7 @@ export const upsetDoctor = actionClient
       .values({
         ...parsedInput,
         id: parsedInput.id,
-        clinicId: session.user.clinic.id,
+        clinicId: session.user.clinic?.id,
         availableFromTime: availableFromTimeUTC.format("HH:mm:ss"),
         availableToTime: availableToTimeUTC.format("HH:mm:ss"),
       })
@@ -58,4 +59,5 @@ export const upsetDoctor = actionClient
           availableToTime: availableToTimeUTC.format("HH:mm:ss"),
         },
       });
+    revalidatePath("/doctors");
   });
