@@ -19,6 +19,22 @@ import { Calendar1Icon, Clock, DollarSignIcon } from "lucide-react";
 import { useState } from "react";
 import { getAvailability } from "../_helpers/availability";
 import UpsertDoctorForm from "./upsert-doctor-form";
+
+import { deleteDoctor } from "@/actions/delete-doctor";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { TrashIcon } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
 interface DoctorCardProps {
   doctor: typeof doctorsTable.$inferSelect;
 }
@@ -33,6 +49,16 @@ function DoctorCard({ doctor }: DoctorCardProps) {
     .toUpperCase();
 
   const availability = getAvailability(doctor);
+
+  const deleteDoctorAction = useAction(deleteDoctor, {
+    onSuccess: () => {
+      toast.success("Médico deletado com sucesso!");
+      setIsUpsertDialogOpen(false);
+    },
+    onError: () => {
+      toast.error("Ocorreu um erro ao deletar o médico.");
+    },
+  });
 
   return (
     <Card>
@@ -64,10 +90,10 @@ function DoctorCard({ doctor }: DoctorCardProps) {
         </Badge>
       </CardContent>
       <Separator />
-      <CardFooter>
+      <CardFooter className="flex justify-between gap-2">
         <Dialog open={isUpsertDialogOpen} onOpenChange={setIsUpsertDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full">Ver detalhes</Button>
+            <Button className="w-[80%]">Ver detalhes</Button>
           </DialogTrigger>
           <UpsertDoctorForm
             doctor={{
@@ -78,6 +104,32 @@ function DoctorCard({ doctor }: DoctorCardProps) {
             onSuccess={() => setIsUpsertDialogOpen(false)}
           />
         </Dialog>
+        {doctor && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost">
+                <TrashIcon color="#FF0000" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação não pode ser desfeita. O médico será permanentemente
+                  deletado.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteDoctorAction.execute({ id: doctor.id })}
+                >
+                  Deletar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </CardFooter>
     </Card>
   );
