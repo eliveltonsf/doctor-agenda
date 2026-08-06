@@ -1,9 +1,11 @@
 import dayjs from "dayjs";
+import "dayjs/locale/pt-br"; // import the locale you want to use
 import utc from "dayjs/plugin/utc";
 
 import { doctorsTable } from "@/db/schema";
 
 dayjs.extend(utc);
+dayjs.locale("pt-br");
 
 export const getAvailability = (doctor: typeof doctorsTable.$inferSelect) => {
   const from = dayjs()
